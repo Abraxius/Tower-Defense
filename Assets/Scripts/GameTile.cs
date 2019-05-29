@@ -85,5 +85,19 @@ public class GameTile : MonoBehaviour
             westRotation;
     }
 
+    public GameTileContent Content
+    {
+        get => content;
+        set
+        {
+            Debug.Assert(value != null, "Kein Inhalt zugewiesen!"); //Der Einzige Ort an dem wir überprüfen müssen ob Inhalt in den Kachel vorhanden ist
+            if (content != null)
+            {
+                content.Recycle();
+            }
+            content = value;
+            content.transform.localPosition = transform.localPosition;
+        }
+    }
 
 }
