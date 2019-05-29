@@ -53,7 +53,7 @@ public class GameTile : MonoBehaviour
         }
         neighbor.distance = distance + 1;
         neighbor.nextOnPath = this;
-        return neighbor;
+        return neighbor.Content.Type != GameTileContentType.Wall ? neighbor : null; //+ Kontrolle, dass Wände nicht in den Weg mit einbezogen werdenn
     }
 
     public GameTile GrowPathNorth() => GrowPathTo(north);   //Methoden um den Pfad in bestimmte Richtungen zu vergrößern
@@ -100,4 +100,8 @@ public class GameTile : MonoBehaviour
         }
     }
 
+    public void HidePath()  //Versteckt die Pfeile
+    {
+        arrow.gameObject.SetActive(false);
+    }
 }

@@ -17,6 +17,10 @@ public class GameBoard : MonoBehaviour
 
     GameTileContentFactory contentFactory;
 
+    bool showGrid, showPaths;
+
+    [SerializeField]
+    Texture2D gridTexture = default;
     //Methoden-----------------------------
     public void Initialize(Vector2Int size, GameTileContentFactory contentFactory)
     {
@@ -63,6 +67,13 @@ public class GameBoard : MonoBehaviour
 
     bool FindPaths()        
     {
+        foreach (GameTile tile in tiles)    //Kontrolle ob alle Kacheln einen gültigen Pfad haben, wenn nicht wird der letzte Befehl zurück gesetzt
+        {
+            if (!tile.HasPath)
+            {
+                return false;
+            }
+        }
         foreach (GameTile tile in tiles)
         {
             if (tile.Content.Type == GameTileContentType.Destination)
@@ -101,12 +112,13 @@ public class GameBoard : MonoBehaviour
                 }
             }
         }
-
-        foreach (GameTile tile in tiles)
+        if (showPaths) //wird nur angezeigt, wenn bool == true
         {
-            tile.ShowPath();
+            foreach (GameTile tile in tiles)
+            {
+                tile.ShowPath();
+            }
         }
-
         return true;
     }
 
@@ -134,10 +146,70 @@ public class GameBoard : MonoBehaviour
                 tile.Content = contentFactory.Get(GameTileContentType.Destination);
                 FindPaths();
             }
-        } else
+        } else if (tile.Content.Type == GameTileContentType.Empty)  //macht das ersetzen von Walls durch Zielpkt unmöglich
         {
             tile.Content = contentFactory.Get(GameTileContentType.Destination);
             FindPaths();
+        }
+    }
+
+    public void ToggleWall(GameTile tile)
+    {
+        if (tile.Content.Type == GameTileContentType.Wall)
+        {
+            tile.Content = contentFactory.Get(GameTileContentType.Empty);
+            FindPaths();
+        }
+        else if (tile.Content.Type == GameTileContentType.Empty)      //Wall kann nur gesetzt werden, wenn es kein Zielpunkt ist
+        {
+            tile.Content = contentFactory.Get(GameTileContentType.Wall);
+            if (!FindPaths())
+            {
+                tile.Content = contentFactory.Get(GameTileContentType.Empty);
+                FindPaths();
+            }
+        }
+    }
+
+    public bool ShowPaths   //Setzt das Bool Arrow Anzeigen standardmässig auf false
+    {
+        get => showPaths;
+        set
+        {
+            showPaths = value;
+            if (showPaths)
+            {
+                foreach (GameTile tile in tiles)
+                {
+                    tile.ShowPath();
+                }
+            }
+            else
+            {
+                foreach (GameTile tile in tiles)
+                {
+                    tile.HidePath();
+                }
+            }
+        }
+    }
+
+    public bool ShowGrid    //Macht das Kastenraster sichtbar
+    {
+        get => showGrid;
+        set
+        {
+            showGrid = value;
+            Material m = ground.GetComponent<MeshRenderer>().material;
+            if (showGrid)
+            {
+                m.mainTexture = gridTexture;
+                m.SetTextureScale("_MainTex", size);    //verhindert das ein hässlicher Rand entsteht, in dem die Größe passen angepasst wird
+            }
+            else
+            {
+                m.mainTexture = null;
+            }
         }
     }
 }

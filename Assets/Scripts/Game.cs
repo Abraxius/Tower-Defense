@@ -15,9 +15,10 @@ public class Game : MonoBehaviour
 
     Ray TouchRay => Camera.main.ScreenPointToRay(Input.mousePosition);
 
-    private void Awake()
+    private void Awake()    //Wird beim öffnen ausgeführt
     {
         board.Initialize(boardSize, tileContentFactory);    //Übergibt den Inhalt an das Board
+        board.ShowGrid = true;
     }
 
     private void OnValidate()   // x und y soll mind. 2 sein, wenn nicht wird es angepasst
@@ -32,21 +33,42 @@ public class Game : MonoBehaviour
         }
     }
 
-    void Update()
+    void Update()   //Spielereingaben werden hier empfangen
     {
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0))    //links klick
         {
             HandleTouch();
         }
+        else if (Input.GetMouseButtonDown(1))   //rechts klick
+        {
+            HandleAlternativeTouch();
+        }
+        if (Input.GetKeyDown(KeyCode.V)) //Ermöglicht ein und Ausblenden der Pfeile
+        {
+            board.ShowPaths = !board.ShowPaths; //Wechselschalter Trick
+        }
+        if (Input.GetKeyDown(KeyCode.G))    //Macht das Grid sichtbar
+        {
+            board.ShowGrid = !board.ShowGrid;
+        }
     }
 
-    void HandleTouch()
+    void HandleAlternativeTouch()   //Zielpkt setzen
+    {
+        GameTile tile = board.GetTile(TouchRay);
+        if (tile != null)
+        {
+            board.ToggleDestination(tile);
+        }
+    }
+
+    void HandleTouch()  //Wall bauen
     {
         GameTile tile = board.GetTile(TouchRay);
         if (tile != null)
         {
             //tile.Content = tileContentFactory.Get(GameTileContentType.Destination);
-            board.ToggleDestination(tile);
+            board.ToggleWall(tile);
         }
     }
 }
