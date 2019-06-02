@@ -59,7 +59,7 @@ public class GameTile : MonoBehaviour
         }
         neighbor.distance = distance + 1;
         neighbor.nextOnPath = this;
-        neighbor.ExitPoint = (neighbor.transform.localPosition + transform.localPosition) * 0.5f;   //Sollen sich von Kanten zu Kanten bewegen und nicht von Zentrum zu Zentrum der Kacheln
+        neighbor.ExitPoint = neighbor.transform.localPosition + direction.GetHalfVector();   //Sollen sich von Kanten zu Kanten bewegen und nicht von Zentrum zu Zentrum der Kacheln EDIT: Winkelberechnung nun
         neighbor.PathDirection = direction;
         return neighbor.Content.Type != GameTileContentType.Wall ? neighbor : null; //+ Kontrolle, dass Wände nicht in den Weg mit einbezogen werdenn
     }
