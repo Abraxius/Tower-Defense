@@ -13,6 +13,14 @@ public class Game : MonoBehaviour
     [SerializeField]
     GameTileContentFactory tileContentFactory = default;
 
+    [SerializeField]
+    EnemyFactory enemyFactory = default;
+
+    [SerializeField, Range(0.1f, 10f)]
+    float spawnSpeed = 1f;
+
+    float spawnProgress;
+
     Ray TouchRay => Camera.main.ScreenPointToRay(Input.mousePosition);
 
     private void Awake()    //Wird beim öffnen ausgeführt
@@ -33,6 +41,8 @@ public class Game : MonoBehaviour
         }
     }
 
+    EnemyCollection enemies = new EnemyCollection();
+
     void Update()   //Spielereingaben werden hier empfangen
     {
         if (Input.GetMouseButtonDown(0))    //links klick
@@ -51,6 +61,15 @@ public class Game : MonoBehaviour
         {
             board.ShowGrid = !board.ShowGrid;
         }
+
+        spawnProgress += spawnSpeed * Time.deltaTime;       //Spawn Prozess der Enemys
+        while (spawnProgress >= 1f)
+        {
+            spawnProgress -= 1f;
+            SpawnEnemy();
+        }
+
+        enemies.GameUpdate();
     }
 
     void HandleAlternativeTouch()   //Zielpkt setzen
@@ -58,7 +77,14 @@ public class Game : MonoBehaviour
         GameTile tile = board.GetTile(TouchRay);
         if (tile != null)
         {
-            board.ToggleDestination(tile);
+            if (Input.GetKey(KeyCode.LeftShift))    //Wenn beim klicken shift gedrückt gehalten wird, wird eien ziel errichtet
+            {
+                board.ToggleDestination(tile);
+            }
+            else
+            {       //Falls nicht, dann wird ein SpawnPoint gesetzt
+                board.ToggleSpawnPoint(tile);
+            }
         }
     }
 
@@ -70,5 +96,15 @@ public class Game : MonoBehaviour
             //tile.Content = tileContentFactory.Get(GameTileContentType.Destination);
             board.ToggleWall(tile);
         }
+    }
+
+    void SpawnEnemy()
+    {
+        GameTile spawnPoint =
+            board.GetSpawnPoint(Random.Range(0, board.SpawnPointCount));
+        Enemy enemy = enemyFactory.Get();
+        enemy.SpawnOn(spawnPoint);
+
+        enemies.Add(enemy);
     }
 }

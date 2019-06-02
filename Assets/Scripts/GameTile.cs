@@ -15,9 +15,14 @@ public class GameTile : MonoBehaviour
     public bool IsAlternative { get; set; } //Alternative ermöglicht Zick Zack Muster (Diagonal)
 
     GameTileContent content;
+
+    public Vector3 ExitPoint { get; private set; }
+
+    public Direction PathDirection { get; private set; }    //Eigenschaft für die Pfadrichtung
     //----------------------------------------------------------------------------------------------------------- Methoden
     public bool HasPath => distance != int.MaxValue; //Überprüft ob alle Kacheln einen Pfad haben (Getter Methode)
 
+    public GameTile NextTileOnPath => nextOnPath; //Getter Methode die den Feinden hilft herauszufinden wo sie lang müssen
     public static void MakeEastWestNeighbors(GameTile east, GameTile west)
     {
         Debug.Assert(west.east == null && east.west == null, "Neudefinierte Nachbarn!");
@@ -42,9 +47,10 @@ public class GameTile : MonoBehaviour
     {
         distance = 0;
         nextOnPath = null;
+        ExitPoint = transform.localPosition;        //Bei der Zielposition ist der Endpunkt das Kachel Zentrum, bei allen anderen ist der Endpunkt der Rand. Weil in der Mitte der Ausgang ist
     }
 
-    GameTile GrowPathTo(GameTile neighbor)
+    GameTile GrowPathTo(GameTile neighbor, Direction direction)
     {
         Debug.Assert(HasPath, "Kein Pfad!");
         if (neighbor == null || neighbor.HasPath)
@@ -53,16 +59,18 @@ public class GameTile : MonoBehaviour
         }
         neighbor.distance = distance + 1;
         neighbor.nextOnPath = this;
+        neighbor.ExitPoint = (neighbor.transform.localPosition + transform.localPosition) * 0.5f;   //Sollen sich von Kanten zu Kanten bewegen und nicht von Zentrum zu Zentrum der Kacheln
+        neighbor.PathDirection = direction;
         return neighbor.Content.Type != GameTileContentType.Wall ? neighbor : null; //+ Kontrolle, dass Wände nicht in den Weg mit einbezogen werdenn
     }
 
-    public GameTile GrowPathNorth() => GrowPathTo(north);   //Methoden um den Pfad in bestimmte Richtungen zu vergrößern
+    public GameTile GrowPathNorth() => GrowPathTo(north, Direction.South);   //Methoden um den Pfad in bestimmte Richtungen zu vergrößern
 
-    public GameTile GrowPathEast() => GrowPathTo(east);
+    public GameTile GrowPathEast() => GrowPathTo(east, Direction.West);
 
-    public GameTile GrowPathSouth() => GrowPathTo(south);
+    public GameTile GrowPathSouth() => GrowPathTo(south, Direction.North);  //xx, Direction..) weil, sich die Blickrichtung umdrehen soll, wenn sich der Pfad umkehrt
 
-    public GameTile GrowPathWest() => GrowPathTo(west);
+    public GameTile GrowPathWest() => GrowPathTo(west, Direction.East);
 
     static Quaternion   //Statische Quaternion, die die Drehrichtung der Pfeile festlegen
         northRotation = Quaternion.Euler(90f, 0f, 0f),
@@ -104,4 +112,6 @@ public class GameTile : MonoBehaviour
     {
         arrow.gameObject.SetActive(false);
     }
+
+
 }

@@ -21,6 +21,10 @@ public class GameBoard : MonoBehaviour
 
     [SerializeField]
     Texture2D gridTexture = default;
+
+    List<GameTile> spawnPoints = new List<GameTile>();  //Liste für die SpawnPoints
+
+    public int SpawnPointCount => spawnPoints.Count; //Über diese Getter Eigenschaft werden die SpawnPoints bekannt gegeben
     //Methoden-----------------------------
     public void Initialize(Vector2Int size, GameTileContentFactory contentFactory)
     {
@@ -60,6 +64,7 @@ public class GameBoard : MonoBehaviour
         }
         //FindPaths(); //Aufruf der Pfad Methode
         ToggleDestination(tiles[tiles.Length / 2]);
+        ToggleSpawnPoint(tiles[0]);    //Erste Kachel unten links wird zu einem SpawnPoint
     }
 
     //Sicherstellung, dass alle Kacheln einen Pfad haben
@@ -211,5 +216,27 @@ public class GameBoard : MonoBehaviour
                 m.mainTexture = null;
             }
         }
+    }
+
+    public void ToggleSpawnPoint(GameTile tile)
+    {
+        if (tile.Content.Type == GameTileContentType.SpawnPoint)
+        {
+            if (spawnPoints.Count > 1)  //Es muss mindestens einen SpawnPoint geben
+            {
+                spawnPoints.Remove(tile);
+                tile.Content = contentFactory.Get(GameTileContentType.Empty);
+            }
+        }
+        else if (tile.Content.Type == GameTileContentType.Empty)
+        {
+            tile.Content = contentFactory.Get(GameTileContentType.SpawnPoint);
+            spawnPoints.Add(tile);
+        }
+    }
+
+    public GameTile GetSpawnPoint(int index)    
+    {
+        return spawnPoints[index];
     }
 }
